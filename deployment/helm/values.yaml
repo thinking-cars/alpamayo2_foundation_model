@@ -1,0 +1,39 @@
+openadservice:
+  name: alpamayo2-trajectory-planning
+  image: ghcr.io/thinking-cars/alpamayo2_trajectory_planning:v1.0.0
+  env:
+    # --- name ------
+    NAMESPACE: /
+    NAME: alpamayo2_trajectory_planning
+    # --- other -----
+    CROSS_LEFT_IMAGE_TOPIC: ~/image/cross_left
+    FRONT_WIDE_IMAGE_TOPIC: ~/image/front_wide
+    CROSS_RIGHT_IMAGE_TOPIC: ~/image/cross_right
+    REAR_LEFT_IMAGE_TOPIC: ~/image/rear_left
+    REAR_RIGHT_IMAGE_TOPIC: ~/image/rear_right
+    FRONT_TELE_IMAGE_TOPIC: ~/image/front_tele
+    ODOMETRY_TOPIC: ~/odometry
+    TRAJECTORY_TOPIC: ~/trajectory
+    LOG_LEVEL: info
+    USE_SIM_TIME: false
+    PARAMS: /docker-ros/ws/install/alpamayo2_trajectory_planning/share/alpamayo2_trajectory_planning/config/params.yml
+  args:
+  - /bin/bash
+  - -ic
+  - |
+    ros2 launch alpamayo2_trajectory_planning alpamayo2_trajectory_planning_launch.py \
+      namespace:=${NAMESPACE} \
+      name:=${NAME} \
+      log_level:=${LOG_LEVEL} \
+      use_sim_time:=${USE_SIM_TIME} \
+      params:=${PARAMS} \
+      cross_left_image_topic:=${CROSS_LEFT_IMAGE_TOPIC} \
+      front_wide_image_topic:=${FRONT_WIDE_IMAGE_TOPIC} \
+      cross_right_image_topic:=${CROSS_RIGHT_IMAGE_TOPIC} \
+      rear_left_image_topic:=${REAR_LEFT_IMAGE_TOPIC} \
+      rear_right_image_topic:=${REAR_RIGHT_IMAGE_TOPIC} \
+      front_tele_image_topic:=${FRONT_TELE_IMAGE_TOPIC} \
+      odometry_topic:=${ODOMETRY_TOPIC} \
+      trajectory_topic:=${TRAJECTORY_TOPIC}
+  rosParamFileMountPath: /docker-ros/ws/install/alpamayo2_trajectory_planning/share/alpamayo2_trajectory_planning/config/params.yml
+  rosParamFileData: null

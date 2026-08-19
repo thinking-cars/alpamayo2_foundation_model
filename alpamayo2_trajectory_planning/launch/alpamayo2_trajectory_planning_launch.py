@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2026 Thinking Cars GmbH
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 
 from ament_index_python import get_package_share_directory
@@ -13,8 +16,46 @@ def generate_launch_description():
     """Create the launch description for the trajectory planning node."""
 
     remappable_topics = [
-        DeclareLaunchArgument("input_topic", default_value="~/input"),
-        DeclareLaunchArgument("output_topic", default_value="~/output"),
+        DeclareLaunchArgument(
+            "cross_left_image_topic",
+            default_value="~/image/cross_left",
+            description="cross-left camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "front_wide_image_topic",
+            default_value="~/image/front_wide",
+            description="front-wide camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "cross_right_image_topic",
+            default_value="~/image/cross_right",
+            description="cross-right camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "rear_left_image_topic",
+            default_value="~/image/rear_left",
+            description="rear-left camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "rear_right_image_topic",
+            default_value="~/image/rear_right",
+            description="rear-right camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "front_tele_image_topic",
+            default_value="~/image/front_tele",
+            description="front-telephoto camera image topic",
+        ),
+        DeclareLaunchArgument(
+            "odometry_topic",
+            default_value="~/odometry",
+            description="ego odometry topic",
+        ),
+        DeclareLaunchArgument(
+            "trajectory_topic",
+            default_value="~/trajectory",
+            description="predicted trajectory topic",
+        ),
     ]
 
     args = [

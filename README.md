@@ -12,9 +12,9 @@
   <a href="https://github.com/thinking-cars/alpamayo2_trajectory_planning/actions/workflows/consistency.yml"><img src="https://github.com/thinking-cars/alpamayo2_trajectory_planning/actions/workflows/consistency.yml/badge.svg"/></a>
 </p>
 
-**TODO: Repository tagline/description**
+**Alpamayo2-Super trajectory planning for ROS 2 and OpenADS.**
 
-TODO: High-level repository introduction paragraph
+This repository provides a ROS 2 planning node that runs NVIDIA Alpamayo 2 Super from synchronized camera and odometry inputs and publishes a reference trajectory for downstream OpenADS modules.
 
 <p align="center">
   <strong>🚀 <a href="#-quick-start">Quick Start</a></strong> • <strong>💻 <a href="#-development">Development</a></strong> • <strong>📝 <a href="#-documentation">Documentation</a></strong>
@@ -31,25 +31,8 @@ TODO: High-level repository introduction paragraph
     ```
 1. Inside the container, launch the pre-built nodes.
     ```bash
-    ros2 launch PACKAGE_NAME LAUNCH_FILE
+    ros2 launch alpamayo2_trajectory_planning alpamayo2_trajectory_planning_launch.py
     ```
-
-<!-- TODO: replace default quick start with repo-specific demo (Docker Compose)
-
-1. Launch a container of the pre-built runtime image in the provided demo [Docker Compose](demo/docker-compose.yml) setup.
-    ```bash
-    cd demo
-    xhost +local: # allow GUI forwarding from containers
-    docker compose up
-    ```
-1. Observe ...
-1. Stop the demo and clean up.
-    > *Ctrl+C*
-    ```bash
-    docker compose down
-    xhost -local: # revoke GUI forwarding permissions
-    ```
--->
 
 ## 💻 Development
 
@@ -98,6 +81,7 @@ Package and node interfaces are documented in the respective package READMEs lis
 
 | Package | Description |
 | --- | --- |
+| [alpamayo2_trajectory_planning](alpamayo2_trajectory_planning/README.md) | ROS 2 trajectory planning using NVIDIA Alpamayo 2 Super |
 
 ## ⚖️ Licensing
 
@@ -105,15 +89,4 @@ The source code in this repository is licensed under Apache-2.0, see [LICENSE](L
 
 ## 🙏 Acknowledgements
 
-Development and maintenance of this repository are supported by the following projects. We acknowledge the funding of the respective institutions.
-
-| Project | Funding Institution | Grant Number |
-| --- | --- | --- |
-| TODO | TODO | TODO |
-
-<p>
-  <img src="https://www.drought.uni-freiburg.de/stressres/images/bmftr-logo/image" height=70>
-  <img src="https://ec.europa.eu/regional_policy/images/information-sources/logo-download-center/eu_funded_en.jpg" height=70>
-</p>
-
-<sub><sup>Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Climate, Infrastructure and Environment Executive Agency (CINEA). Neither the European Union nor CINEA can be held responsible for them.</sup></sub>
+This project is maintained by [Thinking Cars](https://www.thinking-cars.de). We acknowledge the work of the [original authors at NVlabs](https://github.com/NVlabs).

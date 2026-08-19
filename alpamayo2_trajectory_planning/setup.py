@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Thinking Cars GmbH
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from glob import glob
 

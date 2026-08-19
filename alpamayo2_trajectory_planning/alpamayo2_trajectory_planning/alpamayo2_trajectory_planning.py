@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 import rclpy
 import torch
-from nav_msgs.msg import Odometry
+from perception_msgs.msg import EGO, EgoData
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
@@ -38,7 +38,7 @@ class Alpamayo2TrajectoryPlanning(Node):
         self.declare_parameter("model_name", "nvidia/Alpamayo2-Super")
         self.declare_parameter("model_source_path", "")
         self.declare_parameter("image_topics", [""])
-        self.declare_parameter("odometry_topic", "~/odometry")
+        self.declare_parameter("ego_data_topic", "~/ego_data")
         self.declare_parameter("trajectory_topic", "~/trajectory")
         self.declare_parameter("output_frame_id", "base_link")
         self.declare_parameter("inference_period_sec", 2.0)
@@ -47,7 +47,7 @@ class Alpamayo2TrajectoryPlanning(Node):
         self.declare_parameter("top_p", 0.98)
         self.declare_parameter("temperature", 0.6)
         self.declare_parameter("max_image_long_side", 1280)
-        self.declare_parameter("odometry_history_stride", 5)
+        self.declare_parameter("ego_data_history_stride", 5)
 
         if not torch.cuda.is_available():
             raise RuntimeError("Alpamayo 2 Super requires a CUDA-capable NVIDIA GPU.")
@@ -56,7 +56,7 @@ class Alpamayo2TrajectoryPlanning(Node):
         self._dtype = torch.bfloat16
         self._num_frames = 4
         self._num_history_steps = 16
-        self._history_stride = int(self.get_parameter("odometry_history_stride").value)
+        self._history_stride = int(self.get_parameter("ego_data_history_stride").value)
         if self._history_stride < 1:
             raise ValueError("odometry_history_stride must be at least one")
 
@@ -66,7 +66,7 @@ class Alpamayo2TrajectoryPlanning(Node):
         self._frame_buffers: dict[str, deque[tuple[Any, torch.Tensor]]] = {
             topic: deque(maxlen=self._num_frames * 3) for topic in image_topics
         }
-        self._odometry_buffer: deque[Odometry] = deque(maxlen=self._num_history_steps * self._history_stride + 10)
+        self._ego_data_buffer: deque[EgoData] = deque(maxlen=self._num_history_steps * self._history_stride + 10)
         self._executor = ThreadPoolExecutor(max_workers=1)
         self._active_future: Optional[Future[dict[str, Any]]] = None
 
@@ -81,9 +81,9 @@ class Alpamayo2TrajectoryPlanning(Node):
             )
             self.get_logger().info(f"Subscribed to image topic '{topic}'")
 
-        odometry_topic = str(self.get_parameter("odometry_topic").value)
-        self.create_subscription(Odometry, odometry_topic, self._odometry_callback, qos_profile_sensor_data)
-        self.get_logger().info(f"Subscribed to odometry topic '{odometry_topic}'")
+        ego_data_topic = str(self.get_parameter("ego_data_topic").value)
+        self.create_subscription(EgoData, ego_data_topic, self._ego_data_callback, qos_profile_sensor_data)
+        self.get_logger().info(f"Subscribed to ego data topic '{ego_data_topic}'")
         self.get_logger().info(f"Publishing trajectories on '{trajectory_topic}'")
 
         self._load_model()
@@ -149,8 +149,21 @@ class Alpamayo2TrajectoryPlanning(Node):
             return
         self._frame_buffers[topic].append((message.header.stamp, frame))
 
-    def _odometry_callback(self, message: Odometry) -> None:
-        self._odometry_buffer.append(message)
+    def _ego_data_callback(self, message: EgoData) -> None:
+        """Buffer valid EgoData state estimates for the model history."""
+        if message.state.model_id != EGO.MODEL_ID:
+            self.get_logger().warn(
+                f"Ignoring EgoData with model_id={message.state.model_id}; expected EGO model_id={EGO.MODEL_ID}",
+                throttle_duration_sec=5.0,
+            )
+            return
+        if len(message.state.continuous_state) < EGO.CONTINUOUS_STATE_SIZE:
+            self.get_logger().warn(
+                "Ignoring EgoData with an incomplete EGO continuous_state vector",
+                throttle_duration_sec=5.0,
+            )
+            return
+        self._ego_data_buffer.append(message)
 
     @staticmethod
     def _ros_image_to_tensor(message: Image) -> torch.Tensor:
@@ -195,7 +208,7 @@ class Alpamayo2TrajectoryPlanning(Node):
     def _prepare_payload(self) -> Optional[dict[str, Any]]:
         if not all(len(buffer) >= self._num_frames for buffer in self._frame_buffers.values()):
             return None
-        if len(self._odometry_buffer) < self._num_history_steps * self._history_stride:
+        if len(self._ego_data_buffer) < self._num_history_steps * self._history_stride:
             return None
 
         frame_sets = [list(self._frame_buffers[topic])[-self._num_frames :] for topic in self._image_topics]
@@ -205,8 +218,8 @@ class Alpamayo2TrajectoryPlanning(Node):
             self.get_logger().error(f"Image streams must have equal frame dimensions: {error}")
             return None
         image_frames = self._downscale(image_frames)
-        odometry_history = list(self._odometry_buffer)[-self._num_history_steps * self._history_stride :: self._history_stride]
-        ego_history_xyz, ego_history_rot = self._build_ego_history(odometry_history)
+        ego_data_history = list(self._ego_data_buffer)[-self._num_history_steps * self._history_stride :: self._history_stride]
+        ego_history_xyz, ego_history_rot = self._build_ego_history(ego_data_history)
         stamps = [frames[-1][0] for frames in frame_sets]
         stamp = min(stamps, key=lambda value: (value.sec, value.nanosec))
         return {
@@ -230,47 +243,54 @@ class Alpamayo2TrajectoryPlanning(Node):
         return resized.clamp(0, 255).to(torch.uint8).reshape(*image_frames.shape[:2], 3, *target_size)
 
     @staticmethod
-    def _build_ego_history(odometry_history: list[Odometry]) -> tuple[torch.Tensor, torch.Tensor]:
+    def _build_ego_history(ego_data_history: list[EgoData]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Transform an EgoData history into Alpamayo's local pose representation."""
         positions = torch.tensor(
             [
-                [message.pose.pose.position.x, message.pose.pose.position.y, message.pose.pose.position.z]
-                for message in odometry_history
+                [
+                    message.state.continuous_state[EGO.X],
+                    message.state.continuous_state[EGO.Y],
+                    message.state.continuous_state[EGO.Z],
+                ]
+                for message in ego_data_history
             ],
             dtype=torch.float32,
         )
-        quaternions = torch.tensor(
+        euler_angles = torch.tensor(
             [
                 [
-                    message.pose.pose.orientation.x,
-                    message.pose.pose.orientation.y,
-                    message.pose.pose.orientation.z,
-                    message.pose.pose.orientation.w,
+                    message.state.continuous_state[EGO.ROLL],
+                    message.state.continuous_state[EGO.PITCH],
+                    message.state.continuous_state[EGO.YAW],
                 ]
-                for message in odometry_history
+                for message in ego_data_history
             ],
             dtype=torch.float32,
         )
-        rotations = Alpamayo2TrajectoryPlanning._quaternions_to_rotations(quaternions)
+        rotations = Alpamayo2TrajectoryPlanning._euler_angles_to_rotations(euler_angles)
         t0_rotation_inverse = rotations[-1].transpose(0, 1)
         local_positions = (positions - positions[-1]) @ t0_rotation_inverse.transpose(0, 1)
         local_rotations = t0_rotation_inverse.unsqueeze(0) @ rotations
         return local_positions.unsqueeze(0).unsqueeze(0), local_rotations.unsqueeze(0).unsqueeze(0)
 
     @staticmethod
-    def _quaternions_to_rotations(quaternions: torch.Tensor) -> torch.Tensor:
-        normalized = torch.nn.functional.normalize(quaternions, dim=1)
-        x, y, z, w = normalized.unbind(dim=1)
+    def _euler_angles_to_rotations(euler_angles: torch.Tensor) -> torch.Tensor:
+        """Convert EGO roll, pitch, and yaw values into rotation matrices."""
+        roll, pitch, yaw = euler_angles.unbind(dim=1)
+        cos_roll, sin_roll = torch.cos(roll), torch.sin(roll)
+        cos_pitch, sin_pitch = torch.cos(pitch), torch.sin(pitch)
+        cos_yaw, sin_yaw = torch.cos(yaw), torch.sin(yaw)
         return torch.stack(
             (
-                1 - 2 * (y * y + z * z),
-                2 * (x * y - z * w),
-                2 * (x * z + y * w),
-                2 * (x * y + z * w),
-                1 - 2 * (x * x + z * z),
-                2 * (y * z - x * w),
-                2 * (x * z - y * w),
-                2 * (y * z + x * w),
-                1 - 2 * (x * x + y * y),
+                cos_yaw * cos_pitch,
+                cos_yaw * sin_pitch * sin_roll - sin_yaw * cos_roll,
+                cos_yaw * sin_pitch * cos_roll + sin_yaw * sin_roll,
+                sin_yaw * cos_pitch,
+                sin_yaw * sin_pitch * sin_roll + cos_yaw * cos_roll,
+                sin_yaw * sin_pitch * cos_roll - cos_yaw * sin_roll,
+                -sin_pitch,
+                cos_pitch * sin_roll,
+                cos_pitch * cos_roll,
             ),
             dim=1,
         ).reshape(-1, 3, 3)

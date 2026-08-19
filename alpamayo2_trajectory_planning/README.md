@@ -29,7 +29,7 @@ ROS 2 trajectory planning using NVIDIA Alpamayo 2 Super
 | `rear_left_image_topic` | `"~/image/rear_left"` | rear-left camera image topic |
 | `rear_right_image_topic` | `"~/image/rear_right"` | rear-right camera image topic |
 | `front_tele_image_topic` | `"~/image/front_tele"` | front-telephoto camera image topic |
-| `odometry_topic` | `"~/odometry"` | ego odometry topic |
+| `ego_data_topic` | `"~/ego_data"` | ego motion input topic |
 | `trajectory_topic` | `"~/trajectory"` | predicted trajectory topic |
 | `name` | `"alpamayo2_trajectory_planning"` | node name |
 | `namespace` | `""` | node namespace |

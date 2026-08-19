@@ -47,9 +47,9 @@ def generate_launch_description():
             description="front-telephoto camera image topic",
         ),
         DeclareLaunchArgument(
-            "odometry_topic",
-            default_value="~/odometry",
-            description="ego odometry topic",
+            "ego_data_topic",
+            default_value="~/ego_data",
+            description="ego motion input topic",
         ),
         DeclareLaunchArgument(
             "trajectory_topic",

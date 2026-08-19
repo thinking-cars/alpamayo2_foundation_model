@@ -13,7 +13,7 @@ services:
       REAR_LEFT_IMAGE_TOPIC: ~/image/rear_left
       REAR_RIGHT_IMAGE_TOPIC: ~/image/rear_right
       FRONT_TELE_IMAGE_TOPIC: ~/image/front_tele
-      ODOMETRY_TOPIC: ~/odometry
+      EGO_DATA_TOPIC: ~/ego_data
       TRAJECTORY_TOPIC: ~/trajectory
       LOG_LEVEL: ${LOG_LEVEL:-info}
       USE_SIM_TIME: ${USE_SIM_TIME:-false}
@@ -34,7 +34,7 @@ services:
           rear_left_image_topic:=$${REAR_LEFT_IMAGE_TOPIC} \
           rear_right_image_topic:=$${REAR_RIGHT_IMAGE_TOPIC} \
           front_tele_image_topic:=$${FRONT_TELE_IMAGE_TOPIC} \
-          odometry_topic:=$${ODOMETRY_TOPIC} \
+          ego_data_topic:=$${EGO_DATA_TOPIC} \
           trajectory_topic:=$${TRAJECTORY_TOPIC}
     # volumes:
     #   - ./params.yml:/docker-ros/ws/install/alpamayo2_trajectory_planning/share/alpamayo2_trajectory_planning/config/params.yml

@@ -9,7 +9,7 @@
       - ~/image/rear_left
       - ~/image/rear_right
       - ~/image/front_tele
-    odometry_topic: ~/odometry
+    ego_data_topic: ~/ego_data
     trajectory_topic: ~/trajectory
     output_frame_id: base_link
     inference_period_sec: 2.0
@@ -18,4 +18,4 @@
     top_p: 0.98
     temperature: 0.6
     max_image_long_side: 1280
-    odometry_history_stride: 5
+    ego_data_history_stride: 5

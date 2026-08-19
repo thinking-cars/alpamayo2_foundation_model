@@ -3,7 +3,7 @@
 <package format="3">
 
   <name>alpamayo2_trajectory_planning</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>ROS 2 trajectory planning using NVIDIA Alpamayo 2 Super</description>
 
   <maintainer email="vankempen@thinking-cars.de">Raphael van Kempen</maintainer>
@@ -11,8 +11,10 @@
 
   <license>Apache-2.0</license>
 
-  <depend>geometry_msgs</depend>
   <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>trajactory_planning_msgs</depend>
+  <depend>trajactory_planning_msgs_utils</depend>
 
   <export>
     <build_type>ament_python</build_type>

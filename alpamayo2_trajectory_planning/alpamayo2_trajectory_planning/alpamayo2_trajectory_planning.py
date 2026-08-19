@@ -2,9 +2,11 @@ from typing import Any, Optional, Union
 
 import rclpy
 import rclpy.exceptions
-from geometry_msgs.msg import PointStamped
+import trajectory_planning_msgs_utils as tpmu
 from rcl_interfaces.msg import FloatingPointRange, IntegerRange, ParameterDescriptor, SetParametersResult
 from rclpy.node import Node
+from sensor_msgs.msg import Image
+from trajectory_planning_msgs.msg import REFERENCE, Trajectory
 
 
 class Alpamayo2TrajectoryPlanning(Node):
@@ -130,21 +132,23 @@ class Alpamayo2TrajectoryPlanning(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # subscriber for handling incoming messages
-        self.subscriber = self.create_subscription(PointStamped, "~/input", self.topic_callback, qos_profile=10)
+        self.subscriber = self.create_subscription(Image, "~/image", self.topic_callback, qos_profile=10)
         self.get_logger().info(f"Subscribed to '{self.subscriber.topic_name}'")
 
         # publisher for publishing outgoing messages
-        self.publisher = self.create_publisher(PointStamped, "~/output", qos_profile=10)
+        self.publisher = self.create_publisher(Trajectory, "~/trajectory", qos_profile=10)
         self.get_logger().info(f"Publishing to '{self.publisher.topic_name}'")
 
-    def topic_callback(self, msg: PointStamped):
+    def topic_callback(self, msg: Image):
         """Processes messages received by a subscriber
 
         Args:
-            msg (PointStamped): message
+            msg (Image): message
         """
 
         self.get_logger().info(f"Message received with stamp: '{msg.header.stamp}'")
+        msg = Trajectory()
+        tpmu.initialize_trajectory(msg, REFERENCE.TYPE_ID, sample_points=10)
         self.publisher.publish(msg)
 
 

@@ -7,7 +7,7 @@ package_name = "alpamayo2_trajectory_planning"
 
 setup(
     name=package_name,
-    version="0.0.0",
+    version="1.0.0",
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
@@ -18,9 +18,9 @@ setup(
     install_requires=["setuptools"],
     zip_safe=True,
     maintainer="root",
-    maintainer_email="root@todo.todo",
-    description="TODO: Package description",
-    license="TODO: License declaration",
+    maintainer_email="vankempen@thinking-cars.de",
+    description="ROS 2 trajectory planning using NVIDIA Alpamayo 2 Super",
+    license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={
         "console_scripts": ["alpamayo2_trajectory_planning = alpamayo2_trajectory_planning.alpamayo2_trajectory_planning:main"],

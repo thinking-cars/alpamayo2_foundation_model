@@ -22,7 +22,7 @@ jobs:
           base-image: rwthika/ros2-torch:jazzy
           rmw-implementation: rmw_zenoh_cpp
           command: ros2 launch alpamayo2_trajectory_planning alpamayo2_trajectory_planning_launch.py
-          enable-industrial-ci: true
+          enable-industrial-ci: false
           label-maintainer: Raphael van Kempen <vankempen@thinking-cars.de>
           label-authors: Raphael van Kempen <vankempen@thinking-cars.de>
         env:

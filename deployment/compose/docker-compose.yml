@@ -18,6 +18,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       USE_SIM_TIME: ${USE_SIM_TIME:-false}
       PARAMS: ${PARAMS:-/docker-ros/ws/install/alpamayo2_trajectory_planning/share/alpamayo2_trajectory_planning/config/params.yml}
+      HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN:-}
+      MODEL_CACHE_PATH: ${MODEL_CACHE_PATH:-}
     command:
       - /bin/bash
       - -ic
@@ -28,6 +30,8 @@ services:
           log_level:=$${LOG_LEVEL} \
           use_sim_time:=$${USE_SIM_TIME} \
           params:=$${PARAMS} \
+          $${HUGGINGFACE_TOKEN:+huggingface_token:=$${HUGGINGFACE_TOKEN}} \
+          $${MODEL_CACHE_PATH:+model_cache_path:=$${MODEL_CACHE_PATH}} \
           cross_left_image_topic:=$${CROSS_LEFT_IMAGE_TOPIC} \
           front_wide_image_topic:=$${FRONT_WIDE_IMAGE_TOPIC} \
           cross_right_image_topic:=$${CROSS_RIGHT_IMAGE_TOPIC} \

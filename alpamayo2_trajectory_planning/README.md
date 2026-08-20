@@ -25,8 +25,6 @@ ros2 launch alpamayo2_trajectory_planning alpamayo2_trajectory_planning_launch.p
 
 `HF_HOME` is used as the cache location when `model_cache_path` is empty. A custom cache location can also be supplied with `model_cache_path:=/path/to/cache`. The launch file accepts `huggingface_token`, but prefer `HF_TOKEN` because command-line tokens can be recorded in shell history.
 
-
-
 ## Launch Files
 
 ### [`alpamayo2_trajectory_planning_launch.py`](launch/alpamayo2_trajectory_planning_launch.py)
@@ -41,10 +39,10 @@ ros2 launch alpamayo2_trajectory_planning alpamayo2_trajectory_planning_launch.p
 | `front_tele_image_topic` | `"~/image/front_tele"` | front-telephoto camera image topic |
 | `ego_data_topic` | `"~/ego_data"` | ego motion input topic |
 | `trajectory_topic` | `"~/trajectory"` | predicted trajectory topic |
-| `huggingface_token` | `""` | Hugging Face token used when the model is not cached |
-| `model_cache_path` | `""` | Hugging Face model cache directory |
 | `name` | `"alpamayo2_trajectory_planning"` | node name |
 | `namespace` | `""` | node namespace |
 | `params` | `os.path.join(get_package_share_directory("alpamayo2_trajectory_planning"), "config", "params.yml")` | path to parameter file |
 | `log_level` | `"info"` | ROS logging level (debug, info, warn, error, fatal) |
 | `use_sim_time` | `"false"` | use simulation clock |
+| `huggingface_token` | `""` | Hugging Face token used when the model is not cached |
+| `model_cache_path` | `""` | Hugging Face model cache directory |

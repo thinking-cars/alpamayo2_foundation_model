@@ -1,0 +1,23 @@
+/**/*:
+  ros__parameters:
+    model_name: nvidia/Alpamayo2-Super
+    model_source_path: ""
+    huggingface_token: ""
+    model_cache_path: ""
+    image_topics:
+      - ~/image/cross_left
+      - ~/image/front_wide
+      - ~/image/cross_right
+      - ~/image/rear_left
+      - ~/image/rear_right
+      - ~/image/front_tele
+    ego_data_topic: ~/ego_data
+    trajectory_topic: ~/trajectory
+    output_frame_id: base_link
+    inference_period_sec: 2.0
+    max_generation_length: 256
+    num_diffusion_steps: 10
+    top_p: 0.98
+    temperature: 0.6
+    max_image_long_side: 1280
+    ego_data_history_stride: 5

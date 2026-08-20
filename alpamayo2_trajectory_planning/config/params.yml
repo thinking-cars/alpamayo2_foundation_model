@@ -2,6 +2,8 @@
   ros__parameters:
     model_name: nvidia/Alpamayo2-Super
     model_source_path: ""
+    huggingface_token: ""
+    model_cache_path: ""
     image_topics:
       - ~/image/cross_left
       - ~/image/front_wide

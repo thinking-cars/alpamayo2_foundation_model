@@ -70,6 +70,16 @@ def generate_launch_description():
             "log_level", default_value="info", description="ROS logging level (debug, info, warn, error, fatal)"
         ),
         DeclareLaunchArgument("use_sim_time", default_value="false", description="use simulation clock"),
+        DeclareLaunchArgument(
+            "huggingface_token",
+            default_value="",
+            description="Hugging Face token used when the model is not cached",
+        ),
+        DeclareLaunchArgument(
+            "model_cache_path",
+            default_value="",
+            description="Hugging Face model cache directory",
+        ),
         *remappable_topics,
     ]
 
@@ -79,7 +89,13 @@ def generate_launch_description():
             executable="alpamayo2_trajectory_planning",
             namespace=LaunchConfiguration("namespace"),
             name=LaunchConfiguration("name"),
-            parameters=[LaunchConfiguration("params")],
+            parameters=[
+                LaunchConfiguration("params"),
+                {
+                    "huggingface_token": LaunchConfiguration("huggingface_token"),
+                    "model_cache_path": LaunchConfiguration("model_cache_path"),
+                },
+            ],
             arguments=["--ros-args", "--log-level", LaunchConfiguration("log_level")],
             remappings=[(la.default_value[0].text, LaunchConfiguration(la.name)) for la in remappable_topics],
             output="screen",

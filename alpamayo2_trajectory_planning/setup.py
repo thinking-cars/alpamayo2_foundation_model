@@ -18,7 +18,7 @@ setup(
         (os.path.join("share", package_name, "launch"), glob("launch/*launch.[pxy][yma]*")),
         (os.path.join("share", package_name, "config"), glob("config/*")),
     ],
-    install_requires=["setuptools"],
+    install_requires=["setuptools", "colorlog", "einops", "huggingface-hub", "hydra-core", "scipy", "transformers"],
     zip_safe=True,
     maintainer="root",
     maintainer_email="vankempen@thinking-cars.de",

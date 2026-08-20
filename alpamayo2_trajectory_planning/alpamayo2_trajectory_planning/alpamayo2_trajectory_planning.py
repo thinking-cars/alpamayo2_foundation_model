@@ -3,6 +3,7 @@
 
 """ROS 2 adapter for Alpamayo 2 Super trajectory inference."""
 
+import os
 import sys
 from collections import deque
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -37,6 +38,8 @@ class Alpamayo2TrajectoryPlanning(Node):
         super().__init__("alpamayo2_trajectory_planning")
         self.declare_parameter("model_name", "nvidia/Alpamayo2-Super")
         self.declare_parameter("model_source_path", "")
+        self.declare_parameter("huggingface_token", "")
+        self.declare_parameter("model_cache_path", "")
         self.declare_parameter("image_topics", [""])
         self.declare_parameter("ego_data_topic", "~/ego_data")
         self.declare_parameter("trajectory_topic", "~/trajectory")
@@ -123,23 +126,63 @@ class Alpamayo2TrajectoryPlanning(Node):
             from alpamayo2_super import helper
             from alpamayo2_super.models.alpamayo2_super import Alpamayo2Super
         except ModuleNotFoundError as error:
+            if error.name != "alpamayo2_super":
+                raise RuntimeError(
+                    f"Alpamayo 2 Super requires the missing Python dependency '{error.name}'. "
+                    "Install the Alpamayo 2 Super runtime dependencies."
+                ) from error
             raise RuntimeError(
                 "Alpamayo 2 Super is not importable. Install it in the runtime environment or set "
                 "model_source_path to the directory containing alpamayo2_super."
             ) from error
 
-        model_name = str(self.get_parameter("model_name").value)
-        self.get_logger().info(f"Loading Alpamayo 2 Super model '{model_name}' on CUDA")
+        model_path = self._download_model()
+        self.get_logger().info(f"Loading Alpamayo 2 Super model from '{model_path}' on CUDA")
         self._model = Alpamayo2Super.from_pretrained(
-            model_name,
+            model_path,
             dtype=self._dtype,
             device_map="cuda:0",
             attn_implementation="sdpa",
+            local_files_only=True,
         )
         self._model.eval()
         self._helper = helper
         self._tokenizer = self._model.tokenizer
         self.get_logger().info("Alpamayo 2 Super model loaded")
+
+    def _download_model(self) -> str:
+        """Download the gated model once and return its cached snapshot path."""
+        try:
+            from huggingface_hub import snapshot_download
+        except ModuleNotFoundError as error:
+            raise RuntimeError(
+                "huggingface_hub is required to download Alpamayo 2 Super. " "Install the Alpamayo 2 Super runtime dependencies."
+            ) from error
+
+        model_name = str(self.get_parameter("model_name").value)
+        cache_path = str(self.get_parameter("model_cache_path").value) or os.environ.get("HF_HOME")
+        download_kwargs: dict[str, Any] = {"repo_id": model_name}
+        if cache_path:
+            download_kwargs["cache_dir"] = cache_path
+        try:
+            return snapshot_download(**download_kwargs, local_files_only=True)
+        except Exception:
+            pass
+
+        token = str(self.get_parameter("huggingface_token").value) or os.environ.get("HF_TOKEN")
+        if not token:
+            raise RuntimeError(
+                "Alpamayo 2 Super is not cached and requires a Hugging Face access token for download. "
+                "Set the huggingface_token parameter or the HF_TOKEN environment variable."
+            )
+        self.get_logger().info(f"Downloading Alpamayo 2 Super model '{model_name}' into the Hugging Face cache")
+        try:
+            return snapshot_download(**download_kwargs, token=token)
+        except Exception as error:
+            raise RuntimeError(
+                f"Unable to download Alpamayo 2 Super model '{model_name}'. "
+                "Verify the access token and that access to the gated repository has been granted."
+            ) from error
 
     def _image_callback(self, topic: str, message: Image) -> None:
         try:

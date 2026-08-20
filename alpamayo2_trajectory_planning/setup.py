@@ -24,7 +24,7 @@ setup(
     maintainer_email="vankempen@thinking-cars.de",
     description="ROS 2 trajectory planning using NVIDIA Alpamayo 2 Super",
     license="Apache-2.0",
-    tests_require=["pytest"],
+    # tests_require=["pytest"],
     entry_points={
         "console_scripts": ["alpamayo2_trajectory_planning = alpamayo2_trajectory_planning.alpamayo2_trajectory_planning:main"],
     },

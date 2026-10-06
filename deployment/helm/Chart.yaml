@@ -1,0 +1,9 @@
+apiVersion: v2
+name: alpamayo2-trajectory-planning
+version: 1.0.0
+appVersion: 1.0.0
+description: Alpamayo2-Super trajectory planning for ROS 2 and OpenADS.
+dependencies:
+  - repository: oci://ghcr.io/openads-project/openads-helm
+    name: openadservice
+    version: 1.0.0

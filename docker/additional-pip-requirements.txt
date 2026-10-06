@@ -1,0 +1,8 @@
+accelerate
+colorlog
+einops
+huggingface-hub
+hydra-core
+scipy
+setuptools==79.0.1
+transformers==4.57.3
